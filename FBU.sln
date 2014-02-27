@@ -1,0 +1,34 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 2013
+VisualStudioVersion = 12.0.21005.1
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Xml", "Xml\Xml.csproj", "{4801588C-84AC-4D27-813B-D600C33A4CA4}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tests", "Tests\Tests.csproj", "{39D7725C-9D9C-4C72-9EC8-1B7DF02B8477}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ConverterToXml", "ConverterToXml\ConverterToXml.csproj", "{B762B94E-89A8-43E7-B097-DF2F837A1E3B}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{4801588C-84AC-4D27-813B-D600C33A4CA4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4801588C-84AC-4D27-813B-D600C33A4CA4}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4801588C-84AC-4D27-813B-D600C33A4CA4}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4801588C-84AC-4D27-813B-D600C33A4CA4}.Release|Any CPU.Build.0 = Release|Any CPU
+		{39D7725C-9D9C-4C72-9EC8-1B7DF02B8477}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{39D7725C-9D9C-4C72-9EC8-1B7DF02B8477}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{39D7725C-9D9C-4C72-9EC8-1B7DF02B8477}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{39D7725C-9D9C-4C72-9EC8-1B7DF02B8477}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B762B94E-89A8-43E7-B097-DF2F837A1E3B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B762B94E-89A8-43E7-B097-DF2F837A1E3B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B762B94E-89A8-43E7-B097-DF2F837A1E3B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B762B94E-89A8-43E7-B097-DF2F837A1E3B}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal
