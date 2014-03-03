@@ -99,6 +99,9 @@ namespace Xml
 
         public override void AddTextLine(TextElementBase text)
         {
+            if (text == null)
+                throw new ArgumentNullException();
+
             _text = text;
         }
 
@@ -134,7 +137,7 @@ namespace Xml
         public override void AddTextLine(TextElementBase text)
         {
             if (text == null)
-                return;
+                throw new ArgumentNullException();
 
             _lines.Add(text);
         }
@@ -156,6 +159,12 @@ namespace Xml
 
     public static class DataEntryHelper
     {
+        /// <summary>
+        /// Добавляет в xml-узел Текстовые элементы определенного языка
+        /// </summary>
+        /// <param name="node"></param>
+        /// <param name="list"></param>
+        /// <param name="lang"></param>
         public static void AddTextsForLanguage(
             this XElement node, 
             IEnumerable<TextElementBase> list,
@@ -235,9 +244,6 @@ namespace Xml
             }
         }
 
-        public static bool IsMatchesToRegex(this string text, string template)
-        {
-            return (Regex.Match(text, template).Length == text.Length);
-        }
+        
     }
 }

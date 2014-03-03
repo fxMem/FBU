@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using System.IO;
+using System.Text.RegularExpressions;
 
 using Xml;
 
@@ -12,24 +14,23 @@ namespace Tests
         [TestMethod]
         public void TestTemplateVariablesXml()
         {
-            var vars = new List<TemplateVariable>();
-            vars.Add(new TemplateVariable { Name = "TEST1", Translates = 
-            { 
-                { Language.Rus, "Тест" }, 
-                { Language.Eng, "Test" },
-                {Language.Jap, "Fufu"}
-            } });
+            var filepath = @"C:\homeworks\fbu\script\";
+            var varsFile = @"vars.xml";
 
-            vars.Add(new TemplateVariable
-            {
-                Name = "TEST2",
-                Translates = 
-            { 
-                { Language.Rus, "Тест2" }, 
-                { Language.Eng, "Test2" },
-                {Language.Jap, "Fufu2"}
-            }
-            } );
+            var str = @"悟「もうすぐ……おまえに……」%K%P";
+
+            var r = Regex.Match(str, EscapeSeqHelper.TextLine);
+            var es = r.Groups[EscapeSeqHelper.MetaStartGroupName];
+            var ee = r.Groups[EscapeSeqHelper.MetaEndGroupName];
+            var l = r.Groups[EscapeSeqHelper.TextGroupName];
+            var s = r.Groups[EscapeSeqHelper.SpeakerGroupName];
+
+
+            //foreach (var file in Directory.EnumerateFiles(filepath))
+            //{
+            //    var str = File.ReadAllLines(file);
+                
+            //}
 
 
         }

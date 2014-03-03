@@ -11,6 +11,10 @@ namespace Xml
 {
     public static class TemplateHelper
     {
+        public static string TemplateForVarReplace = @"(?<=^" +
+            EscapeSeqHelper.StartEscapeSecGroup + "){0}(?=「)";
+            
+
         public static string LineTagWithDelims = "{%LINE%}";
 
         public static string LineTag = "LINE";
@@ -57,7 +61,8 @@ namespace Xml
             {
                 temp = Regex.Replace(
                     temp, 
-                    tVar.Translates[lang],//@".*" + tVar.Translates[lang] + ".*", 
+                    string.Format(TemplateForVarReplace, tVar.Translates[lang]),
+                    //tVar.Translates[lang],//@".*" + tVar.Translates[lang] + ".*", 
                     "{" + TemplateDelim + tVar.Name + TemplateDelim + "}");
             }
             return temp;
@@ -142,28 +147,7 @@ namespace Xml
             )
         {
             string temp = source.Trim();
-            if (temp.Contains("「"))
-            {
-                 temp = Regex.Match(source, EscapeSeqHelper.JapTextLineSpeak).Value;
-                 return temp;
-            }
-            //if (temp.Contains("『"))
-            //{
-            //    temp = Regex.Match(source, EscapeSeqHelper.JapTextLineSpeak2).Value;
-            //    return temp;
-            //}
-
-            if (temp.EndsWith("%K%P") || (temp.EndsWith("%K%N")))
-            {
-                return Regex.Match(source, EscapeSeqHelper.JapTextLineTemplateEscaped).Value;//, "{" + TemplateDelim + LineTag + TemplateDelim + "}");
-            }
-            else
-            {
-                return Regex.Match(source, EscapeSeqHelper.JapTextLineTemplate).Value;
-                //return Regex.Replace(source, EscapeSeqHelper.JapTextLineTemplate, TemplateDelim + LineTag + TemplateDelim);
-            }
-            
-            
+            return Regex.Match(temp, EscapeSeqHelper.EscapedString).Groups[EscapeSeqHelper.TextGroupName].Value;
         }
 
         public static XElement GetXmlForLanguage(this IEnumerable<TemplateVariable> vars, Language lang)
@@ -187,6 +171,29 @@ namespace Xml
             }
 
             return result;
+        }
+
+        public static string GetMatch(this string sourceString, string template)
+        {
+            var result = Regex.Match(sourceString, template);
+
+            if (!result.Success)
+            {
+                return null;
+            }
+
+            return result.Value;
+        }
+
+        /// <summary>
+        /// Соответствует ли вся строка указанному шаблону
+        /// </summary>
+        /// <param name="text"></param>
+        /// <param name="template"></param>
+        /// <returns></returns>
+        public static bool IsMatchesToRegex(this string text, string template)
+        {
+            return (Regex.Match(text, template).Length == text.Length);
         }
     }
 }

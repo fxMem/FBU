@@ -10,10 +10,10 @@ namespace Xml
     public enum RouteName
     {
         CO,
+        COEP,
         SA,
         PR
     }
-
 
     public class Chapter
     {
@@ -30,8 +30,23 @@ namespace Xml
 
         public Chapter(string filename, List<DataEntry> elements)
         {
+            // Предполагается, что скрипты грузятся только из файлов со стандартным именованием
+            if (!filename.IsMatchesToRegex(EscapeSeqHelper.ValidNativeFileName))
+            {
+                throw new ArgumentOutOfRangeException("Filename must match native filename.");
+            }
+
             _filename = filename;
             _data = elements;
+
+            var route = _filename.GetMatch(EscapeSeqHelper.RouteOfChapter);
+            _route = (RouteName)Enum.Parse(typeof(RouteName), route.ToUpperInvariant());
+
+            var day = filename.GetMatch(EscapeSeqHelper.DayOfChapter);
+            if (!String.IsNullOrWhiteSpace(day))
+            {
+                _day = int.Parse(day);
+            }
         }
 
         public string FileName { get { return _filename; } }
