@@ -27,6 +27,10 @@ namespace Xml
             _id = id;
             _template = template;
             _type = type;
+
+#if INTERN
+            string.Intern(_template);
+#endif
         }
 
         public int Id { get { return _id; } }
@@ -34,6 +38,15 @@ namespace Xml
         public EntryType Type { get { return _type; } }
 
         public string Template { get { return _template; } }
+
+        public abstract TextElementBase this[string hash]
+        {
+            get;
+        }
+
+        public abstract IEnumerable<TextElementBase> EnumerateLines();
+
+        public abstract void TryLinkOut(DataEntry simularEntry);
 
         public virtual XElement toXML()
         {
@@ -53,6 +66,10 @@ namespace Xml
         public abstract string ToString(Language lang, IEnumerable<TemplateVariable> vars);
 
         public abstract void AddTextLine(TextElementBase text);
+
+        public abstract void DeleteTextLine(string hash);
+
+        public abstract void ReplaceLineWithLink(string hash, TextElementBase linkedLine);
     }
 
     public class HiddenEntry : DataEntry
@@ -68,9 +85,35 @@ namespace Xml
             return Template;
         }
 
+        public override TextElementBase this[string hash]
+        {
+            get { throw new NotSupportedException(@"Cant get line from a Hidden-Entry type."); }
+        }
+
+        public override IEnumerable<TextElementBase> EnumerateLines()
+        {
+            // ?
+            return null;
+        }
+
+        public override void TryLinkOut(DataEntry simularEntry)
+        {
+            return;
+        }
+
         public override void AddTextLine(TextElementBase text)
         {
             throw new NotSupportedException(@"Cant add line to a Hidden-Entry type.");
+        }
+
+        public override void DeleteTextLine(string hash)
+        {
+            throw new NotSupportedException("Cant Delete line from Hidden Entry");
+        }
+
+        public override void ReplaceLineWithLink(string hash, TextElementBase linkedLine)
+        {
+            throw new NotSupportedException("Cant replace line from SingleTranslated Entry");
         }
 
         public override XElement toXML()
@@ -94,7 +137,37 @@ namespace Xml
         public override string ToString(Language lang, IEnumerable<TemplateVariable> vars)
         {
             // TODO
-            return Template;
+            return _text.Value;
+        }
+
+        public override TextElementBase this[string hash]
+        {
+            get { throw new NotImplementedException(); }
+        }
+
+        public override IEnumerable<TextElementBase> EnumerateLines()
+        {
+            yield return _text;
+        }
+
+        public override void TryLinkOut(DataEntry simularEntry)
+        {
+            foreach (var line in simularEntry.EnumerateLines())
+            {
+                if (line.Language != _text.Language)
+                {
+                    continue;
+                }
+#if INTERN
+            if (!object.ReferenceEquals(line.Value, _text.Value))
+                    continue;
+#else
+            if (!string.Equals(line.Value, _text.Value, StringComparison.Ordinal))
+                continue;
+#endif
+
+                ReplaceLineWithLink("", line);
+            }
         }
 
         public override void AddTextLine(TextElementBase text)
@@ -103,6 +176,25 @@ namespace Xml
                 throw new ArgumentNullException();
 
             _text = text;
+        }
+
+        public override void DeleteTextLine(string hash)
+        {
+            throw new InvalidOperationException("Cant Delete line from SingleTranslated Entry");
+        }
+
+        public override void ReplaceLineWithLink(string hash, TextElementBase linkedLine)
+        {
+            if (_text.Backlinks.Any())
+            {
+                throw new InvalidOperationException("Can't replace line because it has backlinks. Remove backlinks first.");
+            }
+
+            _text.Dispose();
+            _text = new TextLink(this, 
+                hash, linkedLine.Language, linkedLine.Contributor, linkedLine.DateTime, linkedLine);
+
+            linkedLine.AddBacklink(_text);
         }
 
         public override XElement toXML()
@@ -134,12 +226,95 @@ namespace Xml
             return line;
         }
 
+        public override IEnumerable<TextElementBase> EnumerateLines()
+        {
+            return _lines;
+        }
+
+        public override void TryLinkOut(DataEntry simularEntry)
+        {
+            foreach (var line in simularEntry.EnumerateLines())
+            {
+                if (line is TextLink)
+                {
+                    continue;
+                }
+                // Используется list, т.к. при использовании IEnumerable
+                // нельзя изменять коллекцию
+                for (int lineNum = 0; lineNum < _lines.Count; lineNum++ )
+                {
+                    var sourceLine = _lines[lineNum];
+
+                    if (line.Language != sourceLine.Language)
+                    {
+                        continue;
+                    }
+                    
+#if INTERN
+                    if (!object.ReferenceEquals(line.Value, sourceLine.Value))
+                        continue;
+#else
+                    if (!string.Equals(line.Value, sourceLine.Value, StringComparison.Ordinal))
+                        continue;
+#endif
+
+                    ReplaceLineWithLink(sourceLine.Hash, line);
+                }
+                    
+            }
+        }
+
+        public override TextElementBase this[string hash]
+        {
+            get 
+            {
+                return
+                _lines.
+                Where(line => string.Equals(line.Hash, hash, StringComparison.Ordinal)).
+                FirstOrDefault();
+            }
+        }
+
         public override void AddTextLine(TextElementBase text)
         {
             if (text == null)
                 throw new ArgumentNullException();
 
             _lines.Add(text);
+        }
+
+        public override void ReplaceLineWithLink(string hash, TextElementBase linkedLine)
+        {
+            DeleteTextLine(hash);
+            var newLink = new TextLink(this, 
+                hash, linkedLine.Language, linkedLine.Contributor, linkedLine.DateTime, linkedLine);
+
+            _lines.Add(newLink);
+            linkedLine.AddBacklink(newLink);
+        }
+
+        public override void DeleteTextLine(string hash)
+        {
+            if (string.IsNullOrWhiteSpace(hash))
+            {
+                return;
+            }
+
+            // Гарантируется уникальность хэша в пределах записи
+            foreach (var line in _lines)
+            {
+                if (string.Equals(line.Hash, hash, StringComparison.Ordinal))
+                {
+                    if (line.Backlinks.Any())
+                    {
+                        throw new InvalidOperationException("Can't remove line because it has backlinks. Remove backlinks first.");
+                    }
+
+                    line.Dispose();
+                    _lines.Remove(line);
+                    break;
+                }
+            }
         }
 
         public override XElement toXML()
@@ -186,6 +361,12 @@ namespace Xml
             node.Add(langNode);
         }
 
+        /// <summary>
+        /// Возвращает список узлов для указанного языка
+        /// </summary>
+        /// <param name="list"></param>
+        /// <param name="lang"></param>
+        /// <returns></returns>
         public static IEnumerable<TextElementBase> GetLanguage(this IEnumerable<TextElementBase> list, Language lang)
         {
             if (list == null)
@@ -194,6 +375,12 @@ namespace Xml
             return list.Where(line => line.Language == lang);
         }
 
+        /// <summary>
+        /// Получает запись Preffered для данного языка
+        /// </summary>
+        /// <param name="list"></param>
+        /// <param name="lang"></param>
+        /// <returns></returns>
         public static TextElementBase GetPrefferedForLanguage(this IEnumerable<TextElementBase> list, Language lang)
         {
             if (list == null)
@@ -210,6 +397,12 @@ namespace Xml
             }
         }
 
+        /// <summary>
+        /// Возвращает первый по порядку текстовый элемент для языка
+        /// </summary>
+        /// <param name="list"></param>
+        /// <param name="lang"></param>
+        /// <returns></returns>
         public static TextElementBase GetFirstForLanguage(this IEnumerable<TextElementBase> list, Language lang)
         {
             if (list == null)
@@ -224,6 +417,11 @@ namespace Xml
             return null;
         }
 
+        /// <summary>
+        /// Определяет тип записи по певрой строке (при считывании)
+        /// </summary>
+        /// <param name="firstLine"></param>
+        /// <returns></returns>
         public static EntryType CheckType(this string firstLine)
         {
             if (firstLine.IsMatchesToRegex(EscapeSeqHelper.HiddenEntryTemplateFull))

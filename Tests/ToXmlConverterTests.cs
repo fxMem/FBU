@@ -25,7 +25,7 @@ namespace Tests
             var l = r.Groups[EscapeSeqHelper.TextGroupName];
             var s = r.Groups[EscapeSeqHelper.SpeakerGroupName];
 
-
+            Console.WriteLine("pig");
             //foreach (var file in Directory.EnumerateFiles(filepath))
             //{
             //    var str = File.ReadAllLines(file);

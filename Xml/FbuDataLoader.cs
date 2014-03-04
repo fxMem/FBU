@@ -112,6 +112,7 @@ namespace Xml
                         }
                     case EntryType.Comment :
                         {
+                            // Пропускаем комментированные строки
                             continue;
                         }
                 }
@@ -144,7 +145,7 @@ namespace Xml
             var temp = new DefaultEntry(EntryType.Default, id, template);
             temp.AddTextLine(new TextLine(temp, "JAP1", Language.Jap, "FROM_NATIVE", DateTime.Now, japTextLine));
 
-            // Переводом считается 1-я закоментированная строчка после японской.
+            // Английским переводом считается 1-я закоментированная строчка после японской.
             // Остальные закоментированные строчки игнорируются
             bool englishTranslateFound = false;
 
@@ -194,7 +195,8 @@ namespace Xml
         /// <returns></returns>
         private DataEntry getSingleTranslatedEntry(string line, int id)
         {
-            var textLine = Regex.Match(line, EscapeSeqHelper.SingleTranslatedTextTemplate).Value;
+            var textLine = line.GetMatch(EscapeSeqHelper.SingleTranslatedTextTemplate);
+            //var textLine = Regex.Match(line, EscapeSeqHelper.SingleTranslatedTextTemplate).Value;
             var template = line.GetTemplateFromLine(textLine);
             var temp = new SingleTextEntry(EntryType.SingleTranslated, id, template);
             temp.AddTextLine(new TextLine(temp, "ST1", Language.NotSpecified, "FROM_NATIVE", DateTime.Now, textLine));

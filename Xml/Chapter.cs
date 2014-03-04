@@ -57,7 +57,7 @@ namespace Xml
 
         public int EntryCount { get { return _data.Count; } }
 
-        public IEnumerable<DataEntry> Elements { get { return _data; } }
+        public IList<DataEntry> Elements { get { return _data; } }
 
         public XElement toXML()
         {

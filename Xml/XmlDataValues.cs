@@ -53,6 +53,9 @@ namespace Xml
         /// </summary>
         public static readonly string TextLineTitle = "textline";
 
+
+        public static readonly string TextLinkTitle = "textlink";
+
         /// <summary>
         /// 
         /// </summary>

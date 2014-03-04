@@ -13,7 +13,6 @@ namespace Xml
     {
         public static string TemplateForVarReplace = @"(?<=^" +
             EscapeSeqHelper.StartEscapeSecGroup + "){0}(?=「)";
-            
 
         public static string LineTagWithDelims = "{%LINE%}";
 
@@ -21,6 +20,7 @@ namespace Xml
 
         public static string TemplateDelim = "%";
 
+       
         /// <summary>
         /// Заполняет все заменители актуальными значениями
         /// </summary>
@@ -45,7 +45,7 @@ namespace Xml
         }
 
         /// <summary>
-        /// Находит все значения переменных шаблона и заменяет их заполнителями
+        /// Находит значения переменных шаблона в начале строки и заменяет их заполнителями
         /// </summary>
         /// <param name="line"></param>
         /// <param name="vars"></param>
@@ -107,8 +107,7 @@ namespace Xml
             {
                 case Language.Jap :
                     {
-                        template = EscapeSeqHelper.JapTextLineTemplate;
-                        break;
+                        return line.GetLine();
                     }
                 case Language.Eng :
                     {
@@ -150,6 +149,12 @@ namespace Xml
             return Regex.Match(temp, EscapeSeqHelper.EscapedString).Groups[EscapeSeqHelper.TextGroupName].Value;
         }
 
+        /// <summary>
+        /// Формирует xml-описание для переменных шаблона
+        /// </summary>
+        /// <param name="vars"></param>
+        /// <param name="lang"></param>
+        /// <returns></returns>
         public static XElement GetXmlForLanguage(this IEnumerable<TemplateVariable> vars, Language lang)
         {
             var result = new XElement(XmlDataValues.LanguageTitle);

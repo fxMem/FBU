@@ -7,7 +7,7 @@ using System.Xml.Linq;
 
 namespace Xml
 {
-    public abstract class TextElementBase
+    public abstract class TextElementBase : IDisposable
     {
         private string _hash;
         private Language _lang;
@@ -47,9 +47,11 @@ namespace Xml
 
         public abstract string Value { get; set; }
 
+        public abstract void Dispose();
+
         public IEnumerable<TextElementBase> Backlinks { get { return _backlinks; } }
 
-        public void Addbacklink(TextElementBase link)
+        public void AddBacklink(TextElementBase link)
         {
             if (link == null)
                 return;
@@ -60,6 +62,14 @@ namespace Xml
             _backlinks.Add(link);
         }
 
+        public void UnLink(TextElementBase link)
+        {
+            if (link == null)
+                return;
+
+            _backlinks.Remove(link);
+        }
+
         protected void valueUpdated()
         {
             _dateTime = DateTime.Now;
@@ -67,7 +77,15 @@ namespace Xml
 
         virtual public System.Xml.Linq.XElement toXML()
         {
-            var xml = new XElement(XmlDataValues.TextLineTitle);
+            string title;
+
+            if (this is TextLine)
+                title = XmlDataValues.TextLineTitle;
+            else
+            {
+                title = XmlDataValues.TextLinkTitle;
+            }
+            var xml = new XElement(title);
 
             if (Hash != null)
             {
@@ -132,6 +150,9 @@ namespace Xml
             :base(parent, hash, lang, contributor, time)
         {
             _value = value;
+#if INTERN
+            string.Intern(_value);
+#endif
         }
 
         public override string Value 
@@ -151,6 +172,11 @@ namespace Xml
             xml.Value = Value;
 
             return xml;
+        }
+
+        public override void Dispose()
+        {
+            
         }
     }
 
@@ -184,6 +210,17 @@ namespace Xml
             xml.Add(new XAttribute(XmlDataValues.TargetHashAttr, _linkedText.Hash));
             
             return xml;
+        }
+
+        public override void Dispose()
+        {
+            _linkedText.UnLink(this);
+            GC.SuppressFinalize(this);
+        }
+
+        ~TextLink()
+        {
+            Dispose();
         }
 
     }

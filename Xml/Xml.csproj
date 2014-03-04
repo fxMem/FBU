@@ -17,7 +17,7 @@
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
     <OutputPath>bin\Debug\</OutputPath>
-    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <DefineConstants>TRACE;DEBUG</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
@@ -40,9 +40,12 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Chapter.cs" />
+    <Compile Include="Compression\CompressionProgressEventArgs.cs" />
+    <Compile Include="Compression\Compressor.cs" />
     <Compile Include="DataEntry.cs" />
     <Compile Include="EscapeSeqHelper.cs" />
     <Compile Include="FbuDataLoader.cs" />
+    <Compile Include="Compression\ICompressor.cs" />
     <Compile Include="IFbuDataLoader.cs" />
     <Compile Include="ITemplateVarsLoader.cs" />
     <Compile Include="IToNativeConverter.cs" />
