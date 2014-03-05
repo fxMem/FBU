@@ -9,7 +9,7 @@ namespace Xml.Compression
     /// <summary>
     /// Ищет соврпадающие строки в скрипте и заменяет их ссылками
     /// </summary>
-    interface ICompressor
+    public interface ICompressor
     {
         void Compress(IList<Chapter> data);
 

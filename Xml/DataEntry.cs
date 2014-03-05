@@ -33,6 +33,13 @@ namespace Xml
 #endif
         }
 
+        public DataEntry(XElement xml)
+        {
+            _id = int.Parse(xml.Attribute(XmlDataValues.IdAttr).Value);
+            _template = xml.Element(XmlDataValues.TemplateTitle).Value;
+            _type = (EntryType)Enum.Parse(typeof(EntryType), xml.Attribute(XmlDataValues.EntryTypeAttr).Value);
+        }
+
         public int Id { get { return _id; } }
 
         public EntryType Type { get { return _type; } }
@@ -46,6 +53,11 @@ namespace Xml
 
         public abstract IEnumerable<TextElementBase> EnumerateLines();
 
+        /// <summary>
+        /// Сравнивает текущую запись с предоставленной,
+        /// и если есть совпадения, проставляет ссылки.
+        /// </summary>
+        /// <param name="simularEntry"></param>
         public abstract void TryLinkOut(DataEntry simularEntry);
 
         public virtual XElement toXML()
@@ -78,6 +90,15 @@ namespace Xml
             :base(type, id, template)
         {
 
+        }
+
+        public HiddenEntry(XElement xml)
+            : base(xml)
+        {
+            if (Type != EntryType.Hidden)
+            {
+                throw new ArgumentOutOfRangeException("Can't init hidden entry with non-hidden xml template");
+            }
         }
 
         public override string ToString(Language lang, IEnumerable<TemplateVariable> vars)
@@ -129,9 +150,32 @@ namespace Xml
         public SingleTextEntry(EntryType type, int id, string template)
             : base(type, id, template)
         {
-            var textLine = Regex.Match(template, EscapeSeqHelper.SingleTranslatedTextTemplate);
+            //var textLine = Regex.Match(template, EscapeSeqHelper.SingleTranslatedTextTemplate);
+        }
 
+        public SingleTextEntry(XElement xml)
+            : base(xml)
+        {
+            if (Type != EntryType.SingleTranslated)
+            {
+                throw new ArgumentOutOfRangeException("Can't init single-translated entry with non-s-t xml template");
+            }
 
+            // Получаем 1-й lang узел. Для данного типа записей он должен быть единственным
+            var temp = xml.Element(XmlDataValues.LanguageTitle).Elements().FirstOrDefault();
+            if (temp == null)
+            {
+                throw new ArgumentOutOfRangeException("Single-Translated xml entry must contain one lang node");
+            }
+
+            if (string.Equals(temp.Name.ToString(), XmlDataValues.TextLineTitle, StringComparison.Ordinal))
+            {
+                _text = new TextLine(temp, this, Language.NotSpecified);
+            }
+            else if (string.Equals(temp.Name.ToString(), XmlDataValues.TextLinkTitle, StringComparison.Ordinal))
+            {
+                _text = new TextLink(temp, this, Language.NotSpecified);
+            }
         }
 
         public override string ToString(Language lang, IEnumerable<TemplateVariable> vars)
@@ -217,6 +261,40 @@ namespace Xml
         {
             _lines = new List<TextElementBase>();
         }
+
+        public DefaultEntry(XElement xml)
+            : base(xml)
+        {
+            if (Type != EntryType.Default)
+            {
+                throw new ArgumentOutOfRangeException("Can't init default entry with non-default entry xml template");
+            }
+
+            _lines = new List<TextElementBase>();
+
+            // Проходим по узлам Lang
+            foreach (var node in xml.Elements(XmlDataValues.LanguageTitle))
+            {
+                Language lang = (Language)Enum.Parse(typeof(Language), node.Attribute(XmlDataValues.LanguageAttr).Value);
+
+                // Проходим по каждой записи в языковом узле
+                foreach (var line in node.Elements())
+                {
+                    // Определяем ее тип и добавляем объект соотв. типа в коллекцию 
+                    if (string.Equals(line.Name.ToString(), XmlDataValues.TextLineTitle, StringComparison.Ordinal))
+                    {
+                        var newLine = new TextLine(line, this, lang);
+                        _lines.Add(newLine);
+                    }
+                    else if (string.Equals(line.Name.ToString(), XmlDataValues.TextLinkTitle, StringComparison.Ordinal))
+                    {
+                        var newLine = new TextLink(line, this, lang);
+                        _lines.Add(newLine);
+                    }
+                }
+            }
+        }
+        
 
         public override string ToString(Language lang, IEnumerable<TemplateVariable> vars)
         {

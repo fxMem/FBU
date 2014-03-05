@@ -20,6 +20,8 @@ namespace Xml
 
         public static string TemplateDelim = "%";
 
+        public static string BacklinkTemplate = @"(?'targetId'\d+)(:(?'targetHash'.+))?";
+
        
         /// <summary>
         /// Заполняет все заменители актуальными значениями
@@ -199,6 +201,25 @@ namespace Xml
         public static bool IsMatchesToRegex(this string text, string template)
         {
             return (Regex.Match(text, template).Length == text.Length);
+        }
+
+        public static int getIdForBacklink(this string backlink)
+        {
+            var temp = Regex.Match(backlink, TemplateHelper.BacklinkTemplate);
+            return int.Parse(temp.Groups["targetId"].Value);
+        }
+
+        public static string getHashForBacklink(this string backlink)
+        {
+            var temp = Regex.Match(backlink, TemplateHelper.BacklinkTemplate);
+
+            // Значение хэша может отсутствовать
+            if (temp.Groups["targetHash"].Success)
+            {
+                return temp.Groups["targetHash"].Value;
+            }
+
+            return null;
         }
     }
 }

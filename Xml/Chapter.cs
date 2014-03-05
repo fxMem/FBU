@@ -15,12 +15,17 @@ namespace Xml
         PR
     }
 
+    /// <summary>
+    /// Представляет собой скрипт из одного файла. 
+    /// Внутри главы записи распологаются в порядке возрастания индекса.
+    /// </summary>
     public class Chapter
     {
         private List<DataEntry> _data;
         private string _filename;
         private RouteName _route;
         private int _day;
+        private int _startChapterId;
 
         public Chapter(string filename)
         {
@@ -38,6 +43,7 @@ namespace Xml
 
             _filename = filename;
             _data = elements;
+            _startChapterId = _data[0].Id;
 
             var route = _filename.GetMatch(EscapeSeqHelper.RouteOfChapter);
             _route = (RouteName)Enum.Parse(typeof(RouteName), route.ToUpperInvariant());
@@ -56,6 +62,8 @@ namespace Xml
         public int Day { get { return _day; } }
 
         public int EntryCount { get { return _data.Count; } }
+
+        public int StartEntryId { get { return _startChapterId; } }
 
         public IList<DataEntry> Elements { get { return _data; } }
 
@@ -77,6 +85,12 @@ namespace Xml
             var xml = toXML();
 
             xml.Save(filename);
+        }
+
+        public void SaveToNativeFile(string filename)
+        {
+
+
         }
 
     }
