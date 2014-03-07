@@ -52,35 +52,17 @@ namespace ConverterToXml
 
             var varLoader = new StaticVarLoader(varsFile);
 
-            var loader = new FbuDataLoader(varLoader);
+            //var loader = new FbuDataLoader(varLoader);
 
-            int id = 1;
-            var script = new List<Chapter>();
+            //var compressor = new Compressor();
+            //compressor.CompressionProgressChanged += CompProgresshanged;
 
-            Console.WriteLine("Loading Started..");
-            foreach (var file in Directory.EnumerateFiles(filepath))
-            {
-                var chapter = loader.LoadFromNative(file, id);
-                id += chapter.EntryCount;
+            //var script = new Script(filepath, loader, varLoader, compressor);
+            //script.Save(Path.Combine(outDir, "base.xml"));
 
-                script.Add(chapter);
-                Console.WriteLine(file);
-                //chapter.SaveToFile(Path.ChangeExtension(file, "xml"));
-            }
 
-            Console.WriteLine("Compression Started..");
-
-            var compressor = new Compressor();
-            compressor.CompressionProgressChanged += CompProgresshanged;
-            compressor.Compress(script);
-
-            Console.WriteLine();
-            
-            foreach (var chapter in script)
-            {
-                chapter.SaveToFile(Path.Combine(outDir, Path.ChangeExtension(chapter.FileName, "xml")));
-            }
-            
+            var script2 = new Script(Path.Combine(outDir, "base.xml"), varLoader);
+            script2.Save(Path.Combine(outDir, "base2.xml"));
         }
 
         static void CompProgresshanged(object o, CompressionProgressEventArgs args)

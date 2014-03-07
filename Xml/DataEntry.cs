@@ -58,7 +58,10 @@ namespace Xml
         /// и если есть совпадения, проставляет ссылки.
         /// </summary>
         /// <param name="simularEntry"></param>
-        public abstract void TryLinkOut(DataEntry simularEntry);
+        public virtual void TryLinkOut(DataEntry simularEntry)
+        {
+
+        }
 
         public virtual XElement toXML()
         {
@@ -82,6 +85,11 @@ namespace Xml
         public abstract void DeleteTextLine(string hash);
 
         public abstract void ReplaceLineWithLink(string hash, TextElementBase linkedLine);
+
+        public virtual void UpdateLinks(Script script)
+        {
+
+        }
     }
 
     public class HiddenEntry : DataEntry
@@ -115,11 +123,6 @@ namespace Xml
         {
             // ?
             return null;
-        }
-
-        public override void TryLinkOut(DataEntry simularEntry)
-        {
-            return;
         }
 
         public override void AddTextLine(TextElementBase text)
@@ -192,6 +195,11 @@ namespace Xml
         public override IEnumerable<TextElementBase> EnumerateLines()
         {
             yield return _text;
+        }
+
+        public override void UpdateLinks(Script script)
+        {
+            _text.UpdateLinks(script);
         }
 
         public override void TryLinkOut(DataEntry simularEntry)
@@ -307,6 +315,14 @@ namespace Xml
         public override IEnumerable<TextElementBase> EnumerateLines()
         {
             return _lines;
+        }
+
+        public override void UpdateLinks(Script script)
+        {
+            for (int i = 0; i < _lines.Count; i++)
+            {
+                _lines[i].UpdateLinks(script);
+            }
         }
 
         public override void TryLinkOut(DataEntry simularEntry)
@@ -502,17 +518,17 @@ namespace Xml
         /// <returns></returns>
         public static EntryType CheckType(this string firstLine)
         {
-            if (firstLine.IsMatchesToRegex(EscapeSeqHelper.HiddenEntryTemplateFull))
+            if (firstLine.IsMatchesToRegex(EscapeSeqHelper.CommentLineTemplate))
+            {
+                return EntryType.Comment;
+            }
+            else if (firstLine.IsMatchesToRegex(EscapeSeqHelper.HiddenEntryTemplateFull))
             {
                 return EntryType.Hidden;
             }
             else if (firstLine.IsMatchesToRegex(EscapeSeqHelper.SingleLineTemplate))
             {
                 return EntryType.SingleTranslated;
-            }
-            else if (firstLine.IsMatchesToRegex(EscapeSeqHelper.CommentLineTemplate))
-            {
-                return EntryType.Comment;
             }
             else
             {

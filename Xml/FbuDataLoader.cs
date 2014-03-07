@@ -28,6 +28,7 @@ namespace Xml
             }
 
             List<DataEntry> data;
+            var fn = Path.GetFileName(filename);
             using (var reader = File.OpenText(filename))
             {
                 data = ExtractElements(reader, startId);

@@ -56,6 +56,36 @@ namespace Xml
             compressor.Compress(_chapters);
         }
 
+        /// <summary>
+        /// Загрузить скрипт из мастер-файла (xml)
+        /// </summary>
+        /// <param name="filename"></param>
+        public Script
+            (string filename, 
+            ITemplateVarsLoader varLoader
+            )
+        {
+            if (!File.Exists(filename))
+            {
+                throw new FileNotFoundException("Can't find file with script. + " + filename);
+            }
+
+            _varLoader = varLoader;
+
+            _chapters = new List<Chapter>();
+            XElement xml = XElement.Load(filename);
+            foreach (var chapter in xml.Elements(XmlDataValues.ChapterTitle))
+            {
+                var temp = new Chapter(chapter);
+                _chapters.Add(temp);
+            }
+
+            for (int i = 0; i < _chapters.Count; i++)
+            {
+                _chapters[i].UpdateLinks(this);
+            }
+        }
+
         public DataEntry GetEntry(int id)
         {
             for(int chapterNum = 0; chapterNum < _chapters.Count; chapterNum++)
@@ -66,7 +96,7 @@ namespace Xml
                     continue;
                 }
 
-                if (chapter.StartEntryId + chapter.EntryCount < id)
+                if (chapter.StartEntryId + chapter.EntryCount  - 1 < id)
                 {
                     continue;
                 }
@@ -80,6 +110,18 @@ namespace Xml
             }
 
             return null;
+        }
+
+        public void Save(string filename)
+        {
+            var temp = new XElement("script");
+
+            foreach (var chapter in _chapters)
+            {
+                temp.Add(chapter.toXML());
+            }
+
+            temp.Save(filename);
         }
 
 

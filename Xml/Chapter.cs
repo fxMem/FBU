@@ -55,6 +55,58 @@ namespace Xml
             }
         }
 
+        public Chapter(XElement xml)
+        {
+            if (!string.Equals(xml.Name.ToString(), XmlDataValues.ChapterTitle, StringComparison.Ordinal))
+            {
+                throw new ArgumentOutOfRangeException("Can't create chapter form non-chapter xml");
+            }
+
+            _data = new List<DataEntry>();
+            foreach (var entry in xml.Elements(XmlDataValues.EntryTitle))
+            {
+                // Определяем тип записи и создаем соотв. объект
+                EntryType type;
+                var typeAttr = entry.Attribute(XmlDataValues.EntryTypeAttr);
+                if (typeAttr != null)
+                {
+                    type = (EntryType)Enum.Parse(typeof(EntryType), typeAttr.Value);
+                }
+                else
+                {
+                    type = EntryType.Default;
+                }
+
+                DataEntry temp;
+                switch (type)
+                {
+                        
+                    case EntryType.Hidden:
+                        {
+                            temp = new HiddenEntry(entry);
+                            break;
+                        }
+                    case EntryType.SingleTranslated :
+                        {
+                            temp = new SingleTextEntry(entry);
+                            break;
+                        }
+                    case EntryType.Default :
+                        {
+                            temp = new DefaultEntry(entry);
+                            break;
+                        }
+                    default :
+                        {
+                            throw new ArgumentOutOfRangeException("Can't create entry of unknown type!");
+                        }
+                }
+                _data.Add(temp);
+            }
+
+           
+        }
+
         public string FileName { get { return _filename; } }
 
         public RouteName Route { get { return _route; } }
@@ -78,6 +130,15 @@ namespace Xml
             }
 
             return result;
+        }
+
+        public void UpdateLinks(Script script)
+        {
+            for (int i = 0; i < _data.Count; i++)
+            {
+                _data[i].UpdateLinks(script);
+            }
+
         }
 
         public void SaveToFile(string filename)
