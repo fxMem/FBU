@@ -52,10 +52,10 @@ namespace ConverterToXml
 
             var varLoader = new StaticVarLoader(varsFile);
 
-            //var loader = new FbuDataLoader(varLoader);
+            var loader = new FbuDataLoader(varLoader);
 
-            //var compressor = new Compressor();
-            //compressor.CompressionProgressChanged += CompProgresshanged;
+            var compressor = new Compressor();
+            compressor.CompressionProgressChanged += CompProgressChanged;
 
             //var script = new Script(filepath, loader, varLoader, compressor);
             //script.Save(Path.Combine(outDir, "base.xml"));
@@ -65,9 +65,10 @@ namespace ConverterToXml
             script2.Save(Path.Combine(outDir, "base2.xml"));
         }
 
-        static void CompProgresshanged(object o, CompressionProgressEventArgs args)
+        static void CompProgressChanged(object o, CompressionProgressEventArgs args)
         {
             Console.Write("\r Total compressed = {0}%", args.PercentComplete);
         }
+
     }
 }

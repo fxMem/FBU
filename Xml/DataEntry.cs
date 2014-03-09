@@ -33,11 +33,11 @@ namespace Xml
 #endif
         }
 
-        public DataEntry(XElement xml)
+        public DataEntry(XElement xml, EntryType type)
         {
             _id = int.Parse(xml.Attribute(XmlDataValues.IdAttr).Value);
             _template = xml.Element(XmlDataValues.TemplateTitle).Value;
-            _type = (EntryType)Enum.Parse(typeof(EntryType), xml.Attribute(XmlDataValues.EntryTypeAttr).Value);
+            _type = type;
         }
 
         public int Id { get { return _id; } }
@@ -101,7 +101,7 @@ namespace Xml
         }
 
         public HiddenEntry(XElement xml)
-            : base(xml)
+            : base(xml, EntryType.Hidden)
         {
             if (Type != EntryType.Hidden)
             {
@@ -157,7 +157,7 @@ namespace Xml
         }
 
         public SingleTextEntry(XElement xml)
-            : base(xml)
+            : base(xml, EntryType.SingleTranslated)
         {
             if (Type != EntryType.SingleTranslated)
             {
@@ -189,7 +189,7 @@ namespace Xml
 
         public override TextElementBase this[string hash]
         {
-            get { throw new NotImplementedException(); }
+            get { return _text; }
         }
 
         public override IEnumerable<TextElementBase> EnumerateLines()
@@ -271,7 +271,7 @@ namespace Xml
         }
 
         public DefaultEntry(XElement xml)
-            : base(xml)
+            : base(xml, EntryType.Default)
         {
             if (Type != EntryType.Default)
             {

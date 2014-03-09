@@ -62,9 +62,21 @@ namespace Xml
                 throw new ArgumentOutOfRangeException("Can't create chapter form non-chapter xml");
             }
 
+            _filename = xml.Attribute(XmlDataValues.RootNameAttr).Value;
+
+            bool firstEntry = true;
             _data = new List<DataEntry>();
             foreach (var entry in xml.Elements(XmlDataValues.EntryTitle))
             {
+                if (firstEntry)
+                {
+                    // Запись должна всегда иметь id
+                    var startId = entry.Attribute(XmlDataValues.IdAttr).Value;
+
+                    _startChapterId = int.Parse(startId);
+                    firstEntry = false;
+                }
+
                 // Определяем тип записи и создаем соотв. объект
                 EntryType type;
                 var typeAttr = entry.Attribute(XmlDataValues.EntryTypeAttr);

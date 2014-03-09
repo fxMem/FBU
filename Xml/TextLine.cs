@@ -74,7 +74,13 @@ namespace Xml
             _dateTime = DateTime.Parse(xml.Attribute(XmlDataValues.DateTimeAttr).Value);
             _backlinks = new List<Link>();
 
-            var backlinks = xml.Attribute(XmlDataValues.BacklinkAttr).Value.Split('&');
+            var backlinksAttr = xml.Attribute(XmlDataValues.BacklinkAttr);
+            if (backlinksAttr == null)
+            {
+                return;
+            }
+
+            var backlinks = backlinksAttr.Value.Split('&');
             foreach (var backlink in backlinks)
             {
                 int targetId = backlink.getIdForBacklink();
