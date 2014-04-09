@@ -16,6 +16,8 @@ namespace Xml
 
         private ITemplateVarsLoader _varLoader;
 
+        private ScriptVersion _version;
+
         public List<Chapter> Chapters { get { return _chapters; } }
 
         /// <summary>
@@ -29,7 +31,7 @@ namespace Xml
         }
 
         /// <summary>
-        /// Загружает скрипт из фалоы нативного формата (из указанной директории)
+        /// Загружает скрипт из файла нативного формата (из указанной директории)
         /// </summary>
         /// <param name="scriptDirectory"></param>
         public Script
@@ -54,6 +56,7 @@ namespace Xml
             }
 
             compressor.Compress(_chapters);
+            _version = new ScriptVersion(1, 0, 0);
         }
 
         /// <summary>
@@ -74,6 +77,10 @@ namespace Xml
 
             _chapters = new List<Chapter>();
             XElement xml = XElement.Load(filename);
+
+            var scriptVersion = xml.Attribute(XmlDataValues.ScriptVersionAttr).Value;
+            _version = new ScriptVersion(scriptVersion);
+
             foreach (var chapter in xml.Elements(XmlDataValues.ChapterTitle))
             {
                 var temp = new Chapter(chapter);
@@ -83,6 +90,59 @@ namespace Xml
             for (int i = 0; i < _chapters.Count; i++)
             {
                 _chapters[i].UpdateLinks(this);
+            }
+        }
+
+        /// <summary>
+        /// Обновить загруженный скрипт с помощью патч-файла
+        /// </summary>
+        /// <param name="patch"></param>
+        public void Merge(XElement patch)
+        {
+            var _masterFIleRequiredVersion = patch.Attribute(XmlDataValues.ScriptVersionAttr).Value;
+            var version = new ScriptVersion(_masterFIleRequiredVersion);
+
+            // Патчфайл применяется только к определенной версии матер-файла
+            if (_version.CompareTo(version) != 0)
+            {
+                throw new ArgumentOutOfRangeException(@"Cannot apply this patch file to current master file, 
+                    destination master file version incorrect");
+            }
+
+            foreach (var entry in patch.Elements(XmlDataValues.EntryTitle))
+            {
+                var patchedEntryType = entry.GetEntryType();
+                DataEntry patchedEntry = null;
+                switch (patchedEntryType)
+                {
+                    case EntryType.Hidden :
+                        {
+                            throw new ArgumentOutOfRangeException("Patch file cannot contain hidden entries");
+                        }
+                    case EntryType.Default :
+                        {
+                            patchedEntry = new DefaultEntry(entry, EntryType.Default);
+                            break;
+                        }
+                    case EntryType.SingleTranslated :
+                        {
+                            patchedEntry = new DefaultEntry(entry, EntryType.SingleTranslated);
+                            break;
+                        }
+                }
+
+                var sourceEntry = this.GetEntry(patchedEntry.Id);
+                if (sourceEntry == null)
+                {
+                    throw new IndexOutOfRangeException(string.Format("Can't find in master-file entry with {0} id", patchedEntry.Id));
+                }
+
+                foreach (var line in patchedEntry.EnumerateLines())
+                {
+                    // Возможно, тут будет падать. Внимательно!
+                    line.Approved = false;
+                    sourceEntry.AddTextLine(line);
+                }
             }
         }
 
@@ -115,6 +175,7 @@ namespace Xml
         public void Save(string filename)
         {
             var temp = new XElement("script");
+            temp.Add(new XAttribute(XmlDataValues.ScriptVersionAttr, _version.ToString()));
 
             foreach (var chapter in _chapters)
             {
@@ -122,6 +183,38 @@ namespace Xml
             }
 
             temp.Save(filename);
+        }
+
+        public void SaveToNative(string directory)
+        {
+            if (!Directory.Exists(directory))
+            {
+                Directory.CreateDirectory(directory);
+            }
+
+            var variables = _varLoader.GetVariables();
+
+            foreach (var chapter in _chapters)
+            {
+                var filename = string.Format("{0}.txt", chapter.FileName);
+                var filepath = Path.Combine(directory, filename);
+                
+                using (var writer = new StreamWriter(File.Create(filepath)))
+                {
+                    foreach (var entry in chapter.Elements)
+                    {
+                        writer.Write(entry.ToString(variables));
+
+                        if (entry.Type == EntryType.Default)
+                        {
+                            writer.WriteLine();
+                        }
+                    }
+                }
+
+            }
+
+
         }
 
     }

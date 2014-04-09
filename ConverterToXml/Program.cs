@@ -62,7 +62,9 @@ namespace ConverterToXml
 
 
             var script2 = new Script(Path.Combine(outDir, "base.xml"), varLoader);
-            script2.Save(Path.Combine(outDir, "base2.xml"));
+            script2.SaveToNative(Path.Combine(outDir, "native"));
+
+            //script2.Save(Path.Combine(outDir, "base2.xml"));
         }
 
         static void CompProgressChanged(object o, CompressionProgressEventArgs args)

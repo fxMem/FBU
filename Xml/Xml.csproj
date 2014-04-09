@@ -49,10 +49,10 @@
     <Compile Include="Compression\ICompressor.cs" />
     <Compile Include="IFbuDataLoader.cs" />
     <Compile Include="ITemplateVarsLoader.cs" />
-    <Compile Include="IToNativeConverter.cs" />
     <Compile Include="IToXmlConverter.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Script.cs" />
+    <Compile Include="ScriptVersion.cs" />
     <Compile Include="StaticVarLoader.cs" />
     <Compile Include="TemplateHelper.cs" />
     <Compile Include="TemplateVariable.cs" />

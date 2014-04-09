@@ -120,6 +120,11 @@ namespace Xml
         /// </summary>
         public static readonly string RootNameAttr = "name";
 
+        /// <summary>
+        /// Указывает версию скрипта
+        /// </summary>
+        public static readonly string ScriptVersionAttr = "version";
+
 
 
     }

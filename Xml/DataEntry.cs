@@ -78,7 +78,7 @@ namespace Xml
             return xml;
         }
 
-        public abstract string ToString(Language lang, IEnumerable<TemplateVariable> vars);
+        public abstract string ToString(IEnumerable<TemplateVariable> vars);
 
         public abstract void AddTextLine(TextElementBase text);
 
@@ -102,16 +102,11 @@ namespace Xml
 
         public HiddenEntry(XElement xml)
             : base(xml, EntryType.Hidden)
-        {
-            if (Type != EntryType.Hidden)
-            {
-                throw new ArgumentOutOfRangeException("Can't init hidden entry with non-hidden xml template");
-            }
-        }
+        { }
 
-        public override string ToString(Language lang, IEnumerable<TemplateVariable> vars)
+        public override string ToString(IEnumerable<TemplateVariable> vars)
         {
-            return Template;
+            return Template + Environment.NewLine;
         }
 
         public override TextElementBase this[string hash]
@@ -146,119 +141,134 @@ namespace Xml
         }
     }
 
-    public class SingleTextEntry : DataEntry
-    {
-        private TextElementBase _text;
+//    public class SingleTextEntry : DataEntry
+//    {
+//        private List<TextElementBase> _lines;
 
-        public SingleTextEntry(EntryType type, int id, string template)
-            : base(type, id, template)
-        {
-            //var textLine = Regex.Match(template, EscapeSeqHelper.SingleTranslatedTextTemplate);
-        }
+//        public SingleTextEntry(EntryType type, int id, string template)
+//            : base(type, id, template)
+//        {
+//            _lines = new List<TextElementBase>();
+//        }
 
-        public SingleTextEntry(XElement xml)
-            : base(xml, EntryType.SingleTranslated)
-        {
-            if (Type != EntryType.SingleTranslated)
-            {
-                throw new ArgumentOutOfRangeException("Can't init single-translated entry with non-s-t xml template");
-            }
+//        public SingleTextEntry(XElement xml)
+//            : base(xml, EntryType.SingleTranslated)
+//        {
+//            if (Type != EntryType.SingleTranslated)
+//            {
+//                throw new ArgumentOutOfRangeException("Can't init single-translated entry with non-s-t xml template");
+//            }
 
-            // Получаем 1-й lang узел. Для данного типа записей он должен быть единственным
-            var temp = xml.Element(XmlDataValues.LanguageTitle).Elements().FirstOrDefault();
-            if (temp == null)
-            {
-                throw new ArgumentOutOfRangeException("Single-Translated xml entry must contain one lang node");
-            }
+//            // Получаем 1-й lang узел. Для данного типа записей он должен быть единственным
+//            var temp = xml.Element(XmlDataValues.LanguageTitle);
+//            if (temp == null)
+//            {
+//                throw new ArgumentOutOfRangeException("Single-Translated xml entry must contain one lang node");
+//            }
 
-            if (string.Equals(temp.Name.ToString(), XmlDataValues.TextLineTitle, StringComparison.Ordinal))
-            {
-                _text = new TextLine(temp, this, Language.NotSpecified);
-            }
-            else if (string.Equals(temp.Name.ToString(), XmlDataValues.TextLinkTitle, StringComparison.Ordinal))
-            {
-                _text = new TextLink(temp, this, Language.NotSpecified);
-            }
-        }
+//            var lines = temp.GetLines(this, Language.NotSpecified);
 
-        public override string ToString(Language lang, IEnumerable<TemplateVariable> vars)
-        {
-            // TODO
-            return _text.Value;
-        }
+//            if (lines.Any())
+//            {
+//                _lines = lines;
+//            }
+//            else
+//            {
+//                // Строчек перевода нет. (Это ошибка?)
+//                _lines = new List<TextElementBase>();
+//            }
+//        }
 
-        public override TextElementBase this[string hash]
-        {
-            get { return _text; }
-        }
+//        public override string ToString(Language lang, IEnumerable<TemplateVariable> vars)
+//        {
+//            // TODO
+//            var temp = _lines.GetPrefferedForLanguage(Language.NotSpecified);
 
-        public override IEnumerable<TextElementBase> EnumerateLines()
-        {
-            yield return _text;
-        }
+//            return temp != null ? temp.Value : null;
+//        }
 
-        public override void UpdateLinks(Script script)
-        {
-            _text.UpdateLinks(script);
-        }
+//        public override TextElementBase this[string hash]
+//        {
+//            get 
+//            {
+//                return
+//                _lines.
+//                Where(line => string.Equals(line.Hash, hash, StringComparison.Ordinal)).
+//                FirstOrDefault();
+//            }
+//        }
 
-        public override void TryLinkOut(DataEntry simularEntry)
-        {
-            foreach (var line in simularEntry.EnumerateLines())
-            {
-                if (line.Language != _text.Language)
-                {
-                    continue;
-                }
-#if INTERN
-            if (!object.ReferenceEquals(line.Value, _text.Value))
-                    continue;
-#else
-            if (!string.Equals(line.Value, _text.Value, StringComparison.Ordinal))
-                continue;
-#endif
+//        public override IEnumerable<TextElementBase> EnumerateLines()
+//        {
+//            return _lines;
+//        }
 
-                ReplaceLineWithLink("", line);
-            }
-        }
+//        public override void UpdateLinks(Script script)
+//        {
+//            for (int i = 0; i < _lines.Count; i++)
+//            {
+//                var line = _lines[i];
+//                line.UpdateLinks(script);
+//            }
+//        }
 
-        public override void AddTextLine(TextElementBase text)
-        {
-            if (text == null)
-                throw new ArgumentNullException();
+//        public override void TryLinkOut(DataEntry simularEntry)
+//        {
+//            foreach (var line in simularEntry.EnumerateLines())
+//            {
+//                if (line.Language != _text.Language)
+//                {
+//                    continue;
+//                }
+//#if INTERN
+//            if (!object.ReferenceEquals(line.Value, _text.Value))
+//                    continue;
+//#else
+//            if (!string.Equals(line.Value, _text.Value, StringComparison.Ordinal))
+//                continue;
+//#endif
 
-            _text = text;
-        }
+//                ReplaceLineWithLink("", line);
+//            }
+//        }
 
-        public override void DeleteTextLine(string hash)
-        {
-            throw new InvalidOperationException("Cant Delete line from SingleTranslated Entry");
-        }
+//        public override void AddTextLine(TextElementBase text)
+//        {
+//            if (text == null)
+//                throw new ArgumentNullException();
 
-        public override void ReplaceLineWithLink(string hash, TextElementBase linkedLine)
-        {
-            if (_text.Backlinks.Any())
-            {
-                throw new InvalidOperationException("Can't replace line because it has backlinks. Remove backlinks first.");
-            }
+//            _text = text;
+//        }
 
-            _text.Dispose();
-            _text = new TextLink(this, 
-                hash, linkedLine.Language, linkedLine.Contributor, linkedLine.DateTime, linkedLine);
+//        public override void DeleteTextLine(string hash)
+//        {
+//            throw new InvalidOperationException("Cant Delete line from SingleTranslated Entry");
+//        }
 
-            linkedLine.AddBacklink(_text);
-        }
+//        public override void ReplaceLineWithLink(string hash, TextElementBase linkedLine)
+//        {
+//            if (_text.Backlinks.Any())
+//            {
+//                throw new InvalidOperationException("Can't replace line because it has backlinks. Remove backlinks first.");
+//            }
 
-        public override XElement toXML()
-        {
-            var xml = base.toXML();
-            var langNode = new XElement(XmlDataValues.LanguageTitle);
-            langNode.Add(_text.toXML());
-            xml.Add(langNode);
+//            _text.Dispose();
+//            _text = new TextLink(this, 
+//                hash, linkedLine.Language, linkedLine.Contributor, linkedLine.DateTime, linkedLine);
 
-            return xml;
-        }
-    }
+//            linkedLine.AddBacklink(_text);
+//        }
+
+//        public override XElement toXML()
+//        {
+//            var xml = base.toXML();
+//            var langNode = new XElement(XmlDataValues.LanguageTitle);
+//            langNode.Add(_text.toXML());
+//            xml.Add(langNode);
+
+//            return xml;
+//        }
+//    }
 
     public class DefaultEntry : DataEntry
     {
@@ -270,20 +280,20 @@ namespace Xml
             _lines = new List<TextElementBase>();
         }
 
-        public DefaultEntry(XElement xml)
-            : base(xml, EntryType.Default)
+        public DefaultEntry(XElement xml, EntryType type)
+            : base(xml, type)
         {
-            if (Type != EntryType.Default)
-            {
-                throw new ArgumentOutOfRangeException("Can't init default entry with non-default entry xml template");
-            }
-
             _lines = new List<TextElementBase>();
 
             // Проходим по узлам Lang
             foreach (var node in xml.Elements(XmlDataValues.LanguageTitle))
             {
-                Language lang = (Language)Enum.Parse(typeof(Language), node.Attribute(XmlDataValues.LanguageAttr).Value);
+                // Язык перевода не задан для Single-Translated записей
+                Language lang = Language.NotSpecified;
+                if (Type == EntryType.Default)
+                {
+                    lang = (Language)Enum.Parse(typeof(Language), node.Attribute(XmlDataValues.LanguageAttr).Value);
+                }
 
                 // Проходим по каждой записи в языковом узле
                 foreach (var line in node.Elements())
@@ -302,14 +312,64 @@ namespace Xml
                 }
             }
         }
-        
 
-        public override string ToString(Language lang, IEnumerable<TemplateVariable> vars)
+
+        public override string ToString(IEnumerable<TemplateVariable> vars)
         {
-            var temp = _lines.GetPrefferedForLanguage(lang);
-            var line = temp != null ? Template.FillTemplate(temp.Value, vars, lang) : null;
+            TextElementBase temp = null;
+            var builder = new StringBuilder();
 
-            return line;
+            if (Type == EntryType.SingleTranslated)
+            {
+                temp = _lines.GetFirstForLanguage(Language.NotSpecified);
+                builder.AppendLine(Template.FillTemplate(temp.Value, vars, Language.NotSpecified));
+            }
+            else if (Type == EntryType.Default)
+            {
+                // Получаем строковое представление для записи (все 3 языка)
+
+                // Японская строка
+                var language = Language.Jap;
+                temp = _lines.GetPrefferedForLanguage(language);
+                if (temp == null)
+                {
+                    throw new ArgumentOutOfRangeException("Node MUST contain Japanese translation");
+                }
+
+                builder.AppendLine(Template.FillTemplate(temp.Value, vars, language));
+
+                // Английская строка
+                language = Language.Eng;
+                temp = _lines.GetPrefferedForLanguage(language);
+                if (temp != null)
+                {
+                    // Английский перевод необязателен
+
+                    // Английская строчка скрипта - закомментирована (думать?)
+                    //var englishString = string.Format("//{0}", Template.FillTemplate(temp.Value, vars, language));
+                    var englishString = string.Format("//{0}", temp.Value);
+                    builder.AppendLine(englishString);
+                }
+
+                // Русская строка
+                language = Language.Rus;
+                temp = _lines.GetPrefferedForLanguage(language);
+                if (temp == null)
+                {
+                    throw new ArgumentOutOfRangeException("Node MUST contain Russian translation");
+                }
+
+                //builder.AppendLine(Template.FillTemplate(temp.Value, vars, language));
+                builder.AppendLine(temp.Value);
+            }
+            else
+            {
+                throw new ArgumentException("Unknown entry type!");
+            }
+
+            //var line = temp != null ? Template.FillTemplate(temp.Value, vars, lang) : null;
+
+            return builder.ToString();
         }
 
         public override IEnumerable<TextElementBase> EnumerateLines()
@@ -321,7 +381,8 @@ namespace Xml
         {
             for (int i = 0; i < _lines.Count; i++)
             {
-                _lines[i].UpdateLinks(script);
+                var line = _lines[i];
+                line.UpdateLinks(script);
             }
         }
 
@@ -374,6 +435,14 @@ namespace Xml
             if (text == null)
                 throw new ArgumentNullException();
 
+            if (Type == EntryType.SingleTranslated)
+            {
+                if (text.Language != Language.NotSpecified)
+                {
+                    throw new ArgumentOutOfRangeException("Can't add to single-translated entry line with specified language");
+                }
+            }
+
             _lines.Add(text);
         }
 
@@ -420,6 +489,8 @@ namespace Xml
             xml.AddTextsForLanguage(_lines, Language.Eng);
 
             xml.AddTextsForLanguage(_lines, Language.Rus);
+
+            xml.AddTextsForLanguage(_lines, Language.NotSpecified);
 
             return xml;
         }
@@ -487,7 +558,7 @@ namespace Xml
             }
             else
             {
-                return lines.GetFirstForLanguage(lang);
+                return list.GetFirstForLanguage(lang);
             }
         }
 
@@ -536,6 +607,50 @@ namespace Xml
             }
         }
 
-        
+        /// <summary>
+        /// Извлекает все строки с переводом из xml узла lang
+        /// </summary>
+        /// <param name="langNode"></param>
+        /// <param name="parent"></param>
+        /// <param name="lang"></param>
+        /// <returns></returns>
+        public static List<TextElementBase> GetLines(this XElement langNode, DataEntry parent, Language lang)
+        {
+            if (langNode == null)
+            {
+                throw new ArgumentNullException();
+            }
+
+            var lines = new List<TextElementBase>();
+
+            foreach (var line in langNode.Elements())
+            {
+                if (string.Equals(line.Name.ToString(), XmlDataValues.TextLineTitle, StringComparison.Ordinal))
+                {
+                    var newLine = new TextLine(line, parent, lang);
+                    lines.Add(newLine);
+                }
+                else if (string.Equals(line.Name.ToString(), XmlDataValues.TextLinkTitle, StringComparison.Ordinal))
+                {
+                    var newLine = new TextLink(line, parent, lang);
+                    lines.Add(newLine);
+                }
+            }
+
+            return lines;
+        }
+
+        public static EntryType GetEntryType(this XElement entryNode)
+        {
+            var temp = entryNode.Attribute(XmlDataValues.EntryTypeAttr);
+
+            if (temp == null)
+            {
+                return EntryType.Default;
+            }
+
+            var type = (EntryType)Enum.Parse(typeof(EntryType), temp.Value);
+            return type;
+        }
     }
 }

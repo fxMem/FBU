@@ -100,12 +100,12 @@ namespace Xml
                         }
                     case EntryType.SingleTranslated :
                         {
-                            temp = new SingleTextEntry(entry);
+                            temp = new DefaultEntry(entry, EntryType.SingleTranslated);
                             break;
                         }
                     case EntryType.Default :
                         {
-                            temp = new DefaultEntry(entry);
+                            temp = new DefaultEntry(entry, EntryType.Default);
                             break;
                         }
                     default :

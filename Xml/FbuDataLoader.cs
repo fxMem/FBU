@@ -149,12 +149,18 @@ namespace Xml
             // Английским переводом считается 1-я закоментированная строчка после японской.
             // Остальные закоментированные строчки игнорируются
             bool englishTranslateFound = false;
+            bool russianTranslateFound = false;
 
             while (true)
             {
                 var nextLine = reader.ReadLine();
                 if (string.IsNullOrEmpty(nextLine))
                 {
+                    if (!russianTranslateFound)
+                    {
+                        throw new ArgumentException("Line MUST contain russian translate!");
+                    }
+
                     // Больше в этой группе строчек нет
                     return temp;
                 }
@@ -182,6 +188,7 @@ namespace Xml
                     // Это русский перевод
                     var rusTextLine = nextLine.GetTextLine(Language.Rus);
                     temp.AddTextLine(new TextLine(temp, "RUS1", Language.Rus, "FROM_NATIVE", DateTime.Now, rusTextLine));
+                    russianTranslateFound = true;
                     break;
                 }
             }
@@ -197,9 +204,10 @@ namespace Xml
         private DataEntry getSingleTranslatedEntry(string line, int id)
         {
             var textLine = line.GetMatch(EscapeSeqHelper.SingleTranslatedTextTemplate);
-            //var textLine = Regex.Match(line, EscapeSeqHelper.SingleTranslatedTextTemplate).Value;
+            
             var template = line.GetTemplateFromLine(textLine);
-            var temp = new SingleTextEntry(EntryType.SingleTranslated, id, template);
+            var temp = new DefaultEntry(EntryType.SingleTranslated, id, template);
+
             temp.AddTextLine(new TextLine(temp, "ST1", Language.NotSpecified, "FROM_NATIVE", DateTime.Now, textLine));
             return temp;
         }

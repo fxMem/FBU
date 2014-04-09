@@ -22,7 +22,6 @@ namespace Xml
 
         public static string BacklinkTemplate = @"(?'targetId'\d+)(:(?'targetHash'.+))?";
 
-       
         /// <summary>
         /// Заполняет все заменители актуальными значениями
         /// </summary>
@@ -38,11 +37,20 @@ namespace Xml
             Language lang)
         {
             var regex = new Regex(template);
-            var temp = regex.Replace(LineTag, textLine);
-            foreach (var tVar in vars)
+            //var temp = regex.Replace(LineTag, textLine);
+            var temp = Regex.Replace(template, LineTagWithDelims, textLine);
+
+            if (lang != Language.NotSpecified)
             {
-                temp = regex.Replace(tVar.Name, tVar.Translates[lang]);
+                // Если задан конкретный язык, находим значения для переменных.
+                // Если я зык не задан - мы имеем дело с single-translated типом записи,
+                // проверять переменные не требуется
+                foreach (var tVar in vars)
+                {
+                    temp = Regex.Replace(temp, "{" + TemplateDelim + tVar.Name + TemplateDelim + "}", tVar.Translates[lang]);
+                }
             }
+            
             return temp;
         }
 

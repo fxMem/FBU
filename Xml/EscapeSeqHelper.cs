@@ -11,7 +11,7 @@ namespace Xml
         /// <summary>
         /// Детектирует записть hidden-типа
         /// </summary>
-        public static readonly string HiddenEntryTemplateFull = @"((%N|%O|%P|p)+)|((%FS)?-{40,}(%|\d|[A-Z])+)";
+        public static readonly string HiddenEntryTemplateFull = @"((%N|%O|%P|%p)+)|((%FS)?-{40,}(%|\d|[A-Z])+)";
 
         /// <summary>
         /// Идентификатор для начальной escape-последовательности

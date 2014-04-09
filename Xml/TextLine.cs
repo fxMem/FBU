@@ -35,10 +35,29 @@ namespace Xml
             _target = target;
         }
 
-        public void UpdateTarget(Script script)
+        /// <summary>
+        /// Обновляет ссылку. 
+        /// </summary>
+        /// <param name="script">Весь скрипт (из мастер-файла)</param>
+        /// <param name="lang">Данное значение необходимо для разрешения "висячих" ссылок. Такие ссылки 
+        /// указывают на строку с несуществующим хэшем. В таком случае ссылка проставляется на
+        /// Preffered-узел для данного языка.</param>
+        public void UpdateTarget(Script script, Language lang)
         {
             var entry = script.GetEntry(_targetId);
-            _target = entry[_targetHash];
+
+            var line = entry[_targetHash];
+            if (line != null)
+            {
+                _target = line;
+            }
+            else
+            {
+                _target = entry.EnumerateLines().GetPrefferedForLanguage(lang);
+
+                //throw new NotImplementedException("Requested hash are not contained in entry specified.");
+            }
+            
         }
     }
 
@@ -140,7 +159,7 @@ namespace Xml
             {
                 var backlink = _backlinks[i];
 
-                backlink.UpdateTarget(script);
+                backlink.UpdateTarget(script, _lang);
             }
         }
 
@@ -292,7 +311,7 @@ namespace Xml
         public override void UpdateLinks(Script script)
         {
             base.UpdateLinks(script);
-            _linkedText.UpdateTarget(script);
+            _linkedText.UpdateTarget(script, Language);
         }
 
         public override string Value
